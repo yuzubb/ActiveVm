@@ -207,7 +207,7 @@ client.on('interactionCreate', async (interaction) => {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('🖥 マイサーバー')
+        .setTitle('マイサーバー')
         .setColor(0x5B6AF5)
         .setTimestamp();
 
@@ -235,7 +235,7 @@ client.on('interactionCreate', async (interaction) => {
         .setColor(user.is_banned ? 0xE74C3C : 0x5B6AF5)
         .addFields(
           { name: 'Discord', value: user.discord_username, inline: true },
-          { name: '役割', value: user.is_admin ? '🛡 管理者' : '👤 ユーザー', inline: true },
+          { name: '役割', value: user.is_admin ? '管理者' : 'ユーザー', inline: true },
           { name: 'ステータス', value: user.is_banned ? `🔴 BAN (${user.ban_reason})` : '🟢 正常', inline: true },
           { name: 'サーバー', value: `${serverCount} / ${user.max_servers}`, inline: true },
           { name: '登録日', value: new Date(user.created_at).toLocaleDateString('ja-JP'), inline: true },
@@ -263,7 +263,7 @@ client.on('interactionCreate', async (interaction) => {
           .setThumbnail(target.displayAvatarURL())
           .addFields(
             { name: 'Discord ID', value: `\`${user.discord_id}\``, inline: true },
-            { name: '役割', value: user.is_admin ? '🛡 管理者' : '👤 ユーザー', inline: true },
+            { name: '役割', value: user.is_admin ? '管理者' : 'ユーザー', inline: true },
             { name: 'ステータス', value: user.is_banned ? `🔴 BAN\n理由: ${user.ban_reason}` : '🟢 正常', inline: true },
             { name: 'サーバー数', value: `${serverCount} / ${user.max_servers}`, inline: true },
             { name: '登録日', value: new Date(user.created_at).toLocaleDateString('ja-JP'), inline: true },
@@ -321,7 +321,7 @@ client.on('interactionCreate', async (interaction) => {
         `).all();
 
         const embed = new EmbedBuilder()
-          .setTitle('👥 ユーザー一覧 (最新20件)')
+          .setTitle('ユーザー一覧 (最新20件)')
           .setColor(0x5B6AF5)
           .setDescription(
             users.map(u =>
@@ -347,7 +347,7 @@ client.on('interactionCreate', async (interaction) => {
         `).all();
 
         const embed = new EmbedBuilder()
-          .setTitle('🖥 サーバー一覧 (最新20件)')
+          .setTitle('サーバー一覧 (最新20件)')
           .setColor(0x5B6AF5)
           .setDescription(
             servers.map(s => {
@@ -403,7 +403,7 @@ client.on('interactionCreate', async (interaction) => {
       if (sub === 'show') {
         const specs = db.prepare('SELECT * FROM default_specs WHERE id = 1').get();
         const embed = new EmbedBuilder()
-          .setTitle('⚙️ デフォルトスペック')
+          .setTitle('デフォルトスペック')
           .setColor(0x5B6AF5)
           .addFields(
             { name: 'CPU', value: `${specs.cpu}%`, inline: true },
@@ -456,7 +456,7 @@ client.on('interactionCreate', async (interaction) => {
         `).get().c;
 
         const embed = new EmbedBuilder()
-          .setTitle('🛡️ セキュリティ統計')
+          .setTitle('セキュリティ統計')
           .setColor(0xE74C3C)
           .addFields(
             { name: 'ブロック中IP数', value: `${blockedCount}`, inline: true },
@@ -467,7 +467,7 @@ client.on('interactionCreate', async (interaction) => {
 
         if (topIps.length > 0) {
           embed.addFields({
-            name: '🔥 エラー上位IP (直近1h)',
+            name: 'エラー上位IP (直近1h)',
             value: topIps.map(r => `\`${r.ip}\` — ${r.c}件`).join('\n'),
           });
         }
@@ -517,14 +517,14 @@ client.on('interactionCreate', async (interaction) => {
       `).get().c;
 
       const embed = new EmbedBuilder()
-        .setTitle('📊 ActiveVm 統計')
+        .setTitle('ActiveVm 統計')
         .setColor(0x5B6AF5)
         .addFields(
-          { name: '👥 総ユーザー数', value: `${totalUsers}`, inline: true },
-          { name: '🖥 稼働サーバー数', value: `${totalServers}`, inline: true },
-          { name: '🔴 BAN済ユーザー', value: `${bannedUsers}`, inline: true },
-          { name: '🚫 ブロック中IP', value: `${blockedIps}`, inline: true },
-          { name: '⏰ 期限切れ間近', value: `${expiringSoon}件 (24h以内)`, inline: true },
+          { name: '総ユーザー数', value: `${totalUsers}`, inline: true },
+          { name: '稼働サーバー数', value: `${totalServers}`, inline: true },
+          { name: 'BAN済ユーザー', value: `${bannedUsers}`, inline: true },
+          { name: 'ブロック中IP', value: `${blockedIps}`, inline: true },
+          { name: '期限切れ間近', value: `${expiringSoon}件 (24h以内)`, inline: true },
         )
         .setFooter({ text: 'ActiveVm Management' })
         .setTimestamp();
