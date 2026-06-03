@@ -2,7 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import fetch from 'node-fetch';
 import cron from 'node-cron';
-import Database from 'better-sqlite3';
+import Database from './sqlite-compat.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';

@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import Database from 'better-sqlite3';
+import Database from './sqlite-compat.js';
 
 const db = new Database('./data.db');
 const ADMIN_IDS = ['630804914473402398', '1508050922322788518'];
