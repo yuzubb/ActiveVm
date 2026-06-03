@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pelican Panel — Free Hosting</title>
+<title>ActiveVm Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -552,7 +552,7 @@ function renderServersPage() {
   const activeServers = servers.filter(s => !s.is_deleted);
   return `
     <div class="page-header">
-      <h1>マイサーバー</h1>
+      <h1>My Server</h1>
       <p>無料で${me?.max_servers || 2}個までサーバーを作成できます</p>
     </div>
     <div class="stats-row">
@@ -802,7 +802,7 @@ function renderModal() {
     return `
       <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal">
-          <h2>🖥 新しいサーバーを作成</h2>
+          <h2>新しいサーバーを作成</h2>
           <div class="form-group">
             <label class="form-label">サーバー名</label>
             <input type="text" id="modal-name" placeholder="例: Minecraft-Server" maxlength="30">
@@ -822,7 +822,7 @@ function renderModal() {
     return `
       <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal">
-          <h2>🔨 ユーザーをBAN</h2>
+          <h2>ユーザーをBAN</h2>
           <div class="form-group">
             <label class="form-label">理由（任意）</label>
             <input type="text" id="modal-ban-reason" placeholder="BANの理由を入力...">
@@ -838,7 +838,7 @@ function renderModal() {
     return `
       <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal">
-          <h2>📊 最大サーバー数を変更</h2>
+          <h2>最大サーバー数を変更</h2>
           <div class="form-group">
             <label class="form-label">最大サーバー数</label>
             <input type="number" id="modal-max" value="${m.current}" min="0" max="50">
