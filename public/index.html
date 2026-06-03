@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ActiveVm Panel</title>
+<title>ActiveVm — Free Hosting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -378,12 +378,14 @@
 <script>
 // ── STATE ──────────────────────────────────────────────────────────────────
 let state = {
-  page: 'servers',     // servers | admin-users | admin-servers | admin-specs
+  page: 'servers',
   me: null,
   servers: [],
   specs: null,
   adminUsers: [],
   adminServers: [],
+  blockedIps: [],
+  secStats: {},
   modal: null,
   loading: false,
 };
@@ -411,6 +413,19 @@ async function loadAdminData() {
   ]);
   state.adminUsers = users;
   state.adminServers = servers;
+  await loadSecurityData();
+}
+
+async function loadSecurityData() {
+  try {
+    const [blocked, stats] = await Promise.all([
+      api('GET', '/api/admin/blocked-ips'),
+      api('GET', '/api/admin/stats'),
+    ]);
+    state.blockedIps = blocked;
+    state.secStats = stats;
+    if (state.page === 'admin-security') render();
+  } catch (e) { console.error('Security data load error:', e); }
 }
 
 // ── API ────────────────────────────────────────────────────────────────────
@@ -449,7 +464,7 @@ function renderLanding() {
       <div class="landing-inner">
         <div class="landing-logo">
           <div class="landing-logo-icon">🦤</div>
-          <span>ActiveVm Panel</span>
+          <span>ActiveVm</span>
         </div>
         <h1 class="landing-title">
           無料で使える<br><strong>ゲームサーバー</strong>
@@ -495,7 +510,7 @@ function render() {
       <nav class="sidebar">
         <div class="sidebar-logo">
           <div class="sidebar-logo-icon">🦤</div>
-          <span>ActiveVm Panel</span>
+          <span>ActiveVm</span>
         </div>
         <div class="nav-section">
           <div class="nav-label">メニュー</div>
@@ -519,6 +534,10 @@ function render() {
             <span class="nav-icon">🎛</span>
             <span>デフォルト設定</span>
           </button>
+          <button class="nav-item ${page === 'admin-security' ? 'active' : ''}" onclick="setPage('admin-security')">
+            <span class="nav-icon">🛡</span>
+            <span>セキュリティ</span>
+          </button>
         </div>
         ` : ''}
         <div class="sidebar-spacer"></div>
@@ -540,6 +559,7 @@ function render() {
         ${page === 'admin-users' ? renderAdminUsersPage() : ''}
         ${page === 'admin-servers' ? renderAdminServersPage() : ''}
         ${page === 'admin-specs' ? renderAdminSpecsPage() : ''}
+        ${page === 'admin-security' ? renderAdminSecurityPage() : ''}
       </main>
     </div>
     ${state.modal ? renderModal() : ''}
@@ -616,7 +636,7 @@ function renderServerCard(s) {
       <div class="server-card-header">
         <div>
           <div class="server-name">${esc(s.name)}</div>
-          <div class="server-id mono">${s.pelican_server_id?.slice(0,8) || 'pending'}</div>
+          <div class="server-id mono">${s.activevm_server_id?.slice(0,8) || 'pending'}</div>
         </div>
         ${expired
           ? `<span class="badge badge-red">期限切れ</span>`
@@ -721,7 +741,7 @@ function renderAdminServersPage() {
           <tr>
             <th>名前</th>
             <th>オーナー</th>
-            <th>Pelican ID</th>
+            <th>ActiveVm ID</th>
             <th>期限</th>
             <th>操作</th>
           </tr>
@@ -734,7 +754,7 @@ function renderAdminServersPage() {
             <tr>
               <td>${esc(s.name)}</td>
               <td>${esc(s.discord_username)}</td>
-              <td class="mono" style="font-size:11px;color:var(--text3)">${s.pelican_server_id?.slice(0,8)||'-'}</td>
+              <td class="mono" style="font-size:11px;color:var(--text3)">${s.activevm_server_id?.slice(0,8)||'-'}</td>
               <td>
                 <span style="color:${daysLeft < 1 ? 'var(--red)' : daysLeft < 2 ? 'var(--amber)' : 'var(--green)'}">
                   ${exp.toLocaleDateString('ja-JP')}
@@ -755,7 +775,79 @@ function renderAdminServersPage() {
   `;
 }
 
-// ── PAGE: ADMIN SPECS ──────────────────────────────────────────────────────
+// ── PAGE: ADMIN SECURITY ──────────────────────────────────────────────────
+function renderAdminSecurityPage() {
+  const blocked = state.blockedIps || [];
+  const secStats = state.secStats || {};
+  return `
+    <div class="page-header">
+      <h1>🛡 セキュリティ管理</h1>
+      <p>DDoS・不正アクセス対策・IPブロック管理</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">ブロック中IP</div>
+        <div class="stat-value" style="color:var(--red)">${blocked.length}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">直近1hエラー</div>
+        <div class="stat-value">${secStats.recentErrors ?? '—'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">BAN済ユーザー</div>
+        <div class="stat-value">${secStats.bannedUsers ?? '—'}</div>
+      </div>
+    </div>
+    ${secStats.topErrorIps?.length > 0 ? `
+    <div class="card">
+      <div class="card-header"><div class="card-title">🔥 エラー上位IP（直近1時間）</div></div>
+      <table class="data-table">
+        <thead><tr><th>IPアドレス</th><th>エラー件数</th><th>操作</th></tr></thead>
+        <tbody>
+          ${secStats.topErrorIps.map(r => `
+            <tr>
+              <td class="mono">${esc(r.ip)}</td>
+              <td style="color:var(--red);font-weight:500">${r.c}件</td>
+              <td><button class="btn btn-danger btn-sm" onclick="blockIpManual('${esc(r.ip)}')">ブロック</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ` : ''}
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🚫 IPブロックリスト</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadSecurityData()">🔄 更新</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <input type="text" id="block-ip-input" placeholder="ブロックするIPアドレス (例: 192.168.1.1)" style="flex:1">
+        <input type="text" id="block-ip-reason" placeholder="理由（任意）" style="width:160px">
+        <button class="btn btn-danger btn-sm" onclick="blockIpManual()">ブロック追加</button>
+      </div>
+      ${blocked.length === 0 ? `
+        <div class="empty-state" style="padding:1.5rem">
+          <div class="icon">✅</div>
+          <h3>ブロック中のIPはありません</h3>
+        </div>
+      ` : `
+        <table class="data-table">
+          <thead><tr><th>IPアドレス</th><th>理由</th><th>日時</th><th>操作</th></tr></thead>
+          <tbody>
+            ${blocked.map(r => `
+              <tr>
+                <td class="mono" style="font-size:12px">${esc(r.ip)}</td>
+                <td><span class="badge ${r.reason?.startsWith('auto') ? 'badge-amber' : 'badge-red'}">${esc(r.reason)}</span></td>
+                <td style="font-size:12px;color:var(--text3)">${new Date(r.blocked_at).toLocaleString('ja-JP')}</td>
+                <td><button class="btn btn-success btn-sm" onclick="unblockIpAdmin('${esc(r.ip)}')">解除</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
+    </div>
+  `;
+}
 function renderAdminSpecsPage() {
   const s = state.specs || {};
   return `
@@ -802,7 +894,7 @@ function renderModal() {
     return `
       <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal">
-          <h2>新しいサーバーを作成</h2>
+          <h2>🖥 新しいサーバーを作成</h2>
           <div class="form-group">
             <label class="form-label">サーバー名</label>
             <input type="text" id="modal-name" placeholder="例: Minecraft-Server" maxlength="30">
@@ -822,7 +914,7 @@ function renderModal() {
     return `
       <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal">
-          <h2>ユーザーをBAN</h2>
+          <h2>🔨 ユーザーをBAN</h2>
           <div class="form-group">
             <label class="form-label">理由（任意）</label>
             <input type="text" id="modal-ban-reason" placeholder="BANの理由を入力...">
@@ -838,7 +930,7 @@ function renderModal() {
     return `
       <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal">
-          <h2>最大サーバー数を変更</h2>
+          <h2>📊 最大サーバー数を変更</h2>
           <div class="form-group">
             <label class="form-label">最大サーバー数</label>
             <input type="number" id="modal-max" value="${m.current}" min="0" max="50">
@@ -949,7 +1041,26 @@ async function adminDeleteServer(id) {
     await loadAdminData(); render();
   } catch (e) { toast(e.message, 'error'); }
 }
-async function saveSpecs() {
+async function blockIpManual(ip) {
+  const inputIp = ip || document.getElementById('block-ip-input')?.value?.trim();
+  const reason = document.getElementById('block-ip-reason')?.value?.trim() || 'manual';
+  if (!inputIp) return toast('IPアドレスを入力してください', 'error');
+  try {
+    await api('POST', '/api/admin/blocked-ips', { ip: inputIp, reason });
+    toast(`${inputIp} をブロックしました`);
+    await loadSecurityData();
+    if (document.getElementById('block-ip-input')) document.getElementById('block-ip-input').value = '';
+    if (document.getElementById('block-ip-reason')) document.getElementById('block-ip-reason').value = '';
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function unblockIpAdmin(ip) {
+  try {
+    await api('DELETE', `/api/admin/blocked-ips/${encodeURIComponent(ip)}`);
+    toast(`${ip} のブロックを解除しました`);
+    await loadSecurityData();
+  } catch (e) { toast(e.message, 'error'); }
+}
   const body = {
     cpu: parseInt(document.getElementById('spec-cpu').value),
     memory: parseInt(document.getElementById('spec-mem').value),
